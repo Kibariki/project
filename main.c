@@ -12,7 +12,7 @@ int main(void)
 	char *input = NULL;
 	size_t input_size = 0;
 	pid_t pid = fork();
-	char *args[] = {input, NULL};
+	char **args = NULL;
 	int status;
 	ssize_t read_bytes = getline(&input, &input_size, stdin);
 
@@ -21,8 +21,13 @@ int main(void)
 		printf("(:");
 		if (read_bytes == -1)
 		{
-			printf("\nExiting the shell.\n");
-			break;
+			input[strcspn(input, "\n")] = '\0';
+			args = malloc(2 * sizeof(char *));
+			if (args == NULL)
+			{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+			}
 		}
 		input[strcspn(input, "\n")] = '\0';
 		if (pid == -1)
@@ -37,6 +42,8 @@ int main(void)
 			perror("execvp");
 			exit(EXIT_FAILURE);
 			}
+			args[0] = input;
+			args[1] = NULL;
 		}
 		else
 		{
@@ -49,5 +56,6 @@ int main(void)
 		printf("You typed: %s\n", input);
 		}
 	free(input);
+	free(args);
 	return (0);
 }
